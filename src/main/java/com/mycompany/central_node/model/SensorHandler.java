@@ -6,8 +6,10 @@
 package com.mycompany.central_node.model;
 
 import static com.mycompany.central_node.PrimaryController.Messages;
+import static com.mycompany.central_node.model.Central_Node.actuators;
 import static com.mycompany.central_node.model.Central_Node.connectedSockets;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -22,6 +24,7 @@ public class SensorHandler extends Service{
     private PrintWriter out;  //output - kimenet a kliens felé
     private BufferedReader in; //input  - bemenet a kliens felől
     private String uzenet;
+    private String sensorType;
     
     
     public SensorHandler(Socket sensorSocket) {
@@ -48,6 +51,18 @@ public class SensorHandler extends Service{
                             Messages.add("Connection over");
                             break;
                         }else{
+                            //Ha van az üzenetben szóköz akkor az a bemutatkozás
+                            if(uzenet.contains(" ")){
+                                String[] splittedMessage = uzenet.split(" ");
+                                System.out.println(splittedMessage[1]);
+                                sensorType = splittedMessage[1];
+                            }
+
+                            //Ha nincs benne szóköz akkor az adat küldése történik
+                            if(!uzenet.contains(" ")){
+                                    handleData(sensorType,Double.parseDouble(uzenet));
+                            }
+
                             Messages.add(uzenet);
                             System.out.println("Kapott üzenet: "+uzenet);
                         }
@@ -60,4 +75,33 @@ public class SensorHandler extends Service{
                 }
             };
 }
+
+    //Szenzoroktól beérkező adatok kezelése
+    private void handleData(String type,Double data) throws IOException {
+        if(type.equals("TemperatureSensor")){
+            if(data>30)
+                for (Socket s: actuators) {
+                    PrintWriter actOut = new PrintWriter(s.getOutputStream(),true);
+                    actOut.println("Turn on");
+                }
+        }
+        else if(type.equals("WaterLevelMeterSensor")){
+            if(data<200)
+                for (Socket s: actuators) {
+                    PrintWriter actOut = new PrintWriter(s.getOutputStream(),true);
+                    actOut.println("Turn on");
+                }
+        }
+        else if(type.equals("HumiditySensor")){
+            if(data<50)
+                for (Socket s: actuators) {
+                    PrintWriter actOut = new PrintWriter(s.getOutputStream(),true);
+                    actOut.println("Turn on");
+                }
+        }
+        else if(type.equals("Irrigation")){
+            System.out.println(type);
+            actuators.add(sensorSocket);
+        }
+    }
 }

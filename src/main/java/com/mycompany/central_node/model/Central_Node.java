@@ -8,6 +8,9 @@ package com.mycompany.central_node.model;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
@@ -20,6 +23,7 @@ import javafx.concurrent.Task;
 public class Central_Node extends Service {
     private ServerSocket serverSocket;  //ServerSocket, azonosítja a servert
     public static ObservableList<Socket> connectedSockets = FXCollections.observableArrayList(); //Ebben a listában tároljuk el a csatlakozott socketeket
+    public static List<Socket> actuators = new ArrayList<>();
     private Socket sc;
     private int port;
     
